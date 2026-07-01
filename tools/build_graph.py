@@ -269,7 +269,7 @@ Rules:
         page_edges = []
         valid_rels = []
         try:
-            raw = call_llm(prompt, "LLM_MODEL_FAST", "claude-3-5-haiku-latest", max_tokens=1024)
+            raw = call_llm(prompt, "LLM_MODEL_FAST", "claude-3-5-haiku-latest", max_tokens=4096)
             raw = raw.strip()
 
             match = re.search(r"(\{[\s\S]*\}|\[[\s\S]*\])", raw)

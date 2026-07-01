@@ -49,6 +49,7 @@ def call_llm(
     model_env: str = "LLM_MODEL",
     default_model: str = "claude-3-5-sonnet-latest",
     max_tokens: int = 4096,
+    json_mode: bool = False,
 ) -> str:
     """Call an LLM via litellm.
 
@@ -57,6 +58,7 @@ def call_llm(
         model_env: Environment variable name for model selection.
         default_model: Fallback model if env var is unset.
         max_tokens: Maximum response tokens.  0 or None to omit the limit.
+        json_mode: If True, requests structured JSON output (response_format).
     """
     try:
         from litellm import completion
@@ -70,11 +72,16 @@ def call_llm(
         "model": model,
         "messages": [{"role": "user", "content": prompt}],
     }
+    if json_mode:
+        kwargs["response_format"] = {"type": "json_object"}
     if max_tokens:
         kwargs["max_tokens"] = max_tokens
 
     response = completion(**kwargs)
-    return response.choices[0].message.content
+    msg = response.choices[0].message
+    # Some reasoning models (Kimi K2.5, DeepSeek R1) put output in
+    # reasoning_content, leaving content empty. Fall back gracefully.
+    return (msg.content or getattr(msg, 'reasoning_content', None) or '').strip()
 
 
 # ── Hashing ────────────────────────────────────────────────────────────
